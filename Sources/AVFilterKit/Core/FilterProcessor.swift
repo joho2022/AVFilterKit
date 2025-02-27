@@ -11,6 +11,8 @@ public class FilterProcessor {
     
     private let context = CIContext()
     
+    public init() {}
+    
     public func apply(_ filter: Filter, to ciImage: CIImage) async -> CIImage? {
         
         var result = ciImage
