@@ -64,7 +64,7 @@ public class FilterProcessor {
         return result
     }
     
-    @MainActor public func convertToCGImage(from ciImage: CIImage) -> CGImage? {
+    @MainActor public static func convertToCGImage(from ciImage: CIImage) -> CGImage? {
         return FilterProcessor.context.createCGImage(ciImage, from: ciImage.extent)
     }
     
