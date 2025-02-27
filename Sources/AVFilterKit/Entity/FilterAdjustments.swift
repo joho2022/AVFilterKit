@@ -5,7 +5,7 @@
 //  Created by 조호근 on 2/27/25.
 //
 
-public struct FilterAdjustments {
+public struct FilterAdjustments: Equatable {
     
     public var contrast: Adjustment
     public var saturation: Adjustment

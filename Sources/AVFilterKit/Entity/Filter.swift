@@ -5,8 +5,11 @@
 //  Created by 조호근 on 2/27/25.
 //
 
-public struct Filter {
+import Foundation
+
+public struct Filter: Equatable, Identifiable {
     
+    public let id = UUID()
     public let name: String
     public let adjustments: FilterAdjustments
     

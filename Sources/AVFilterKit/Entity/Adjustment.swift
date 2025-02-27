@@ -5,7 +5,7 @@
 //  Created by 조호근 on 2/27/25.
 //
 
-public struct Adjustment {
+public struct Adjustment: Equatable {
     
     public let value: Double
     public let range: ClosedRange<Double>
