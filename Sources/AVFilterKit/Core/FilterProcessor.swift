@@ -9,11 +9,12 @@ import CoreImage
 
 public class FilterProcessor {
     
-    private let context = CIContext()
+    @MainActor
+    private static let context = CIContext()
     
-    public init() {}
+    private init() {}
     
-    public func apply(_ filter: Filter, to ciImage: CIImage) async -> CIImage? {
+    public static func apply(_ filter: Filter, to ciImage: CIImage) async -> CIImage? {
         
         var result = ciImage
         
@@ -63,15 +64,15 @@ public class FilterProcessor {
         return result
     }
     
-    public func convertToCGImage(from ciImage: CIImage) -> CGImage? {
-        return context.createCGImage(ciImage, from: ciImage.extent)
+    @MainActor public func convertToCGImage(from ciImage: CIImage) -> CGImage? {
+        return FilterProcessor.context.createCGImage(ciImage, from: ciImage.extent)
     }
     
 }
 
 extension FilterProcessor {
     
-    private func applyAdjustment(
+    private static func applyAdjustment(
         _ adjustment: Adjustment,
         to image: CIImage,
         filterName: String,
@@ -89,7 +90,7 @@ extension FilterProcessor {
         return filter.outputImage
     }
     
-    private func applyGrain(
+    private static func applyGrain(
         _ adjustment: Adjustment,
         to image: CIImage
     ) -> CIImage? {
