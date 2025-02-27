@@ -63,6 +63,13 @@ public class FilterProcessor {
         return result
     }
     
+    public func convertToCGImage(from ciImage: CIImage) -> CGImage? {
+        return context.createCGImage(ciImage, from: ciImage.extent)
+    }
+    
+}
+
+extension FilterProcessor {
     
     private func applyAdjustment(
         _ adjustment: Adjustment,
