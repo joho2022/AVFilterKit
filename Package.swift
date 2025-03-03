@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "AVFilterKit",
-    platforms: [.iOS(.v16)],
+    platforms: [.iOS(.v16), .macOS(.v15)],
     products: [
         .library(
             name: "AVFilterKit",
