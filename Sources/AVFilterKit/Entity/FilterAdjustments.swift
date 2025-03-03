@@ -7,24 +7,24 @@
 
 public struct FilterAdjustments: Equatable {
     
-    public var contrast: Adjustment
-    public var saturation: Adjustment
-    public var temperature: Adjustment
-    public var grain: Adjustment
-    public var vignette: Adjustment
+    public var contrast: Float
+    public var saturation: Float
+    public var temperature: Float
+    public var grain: Float
+    public var vignette: Float
     
     public init(
-        contrast: Double = 0,
-        saturation: Double = 0,
-        temperature: Double = 0,
-        grain: Double = 0,
-        vignette: Double = 0
+        contrast: Float = 1.0,
+        saturation: Float = 1.0,
+        temperature: Float = 6500,
+        grain: Float = 0.0,
+        vignette: Float = 0.0
     ) {
-        self.contrast = Adjustment(value: contrast, range: -100...100)
-        self.saturation = Adjustment(value: saturation, range: -100...100)
-        self.temperature = Adjustment(value: temperature, range: -50...50)
-        self.grain = Adjustment(value: grain, range: 0...100)
-        self.vignette = Adjustment(value: vignette, range: 0...100)
+        self.contrast = contrast
+        self.saturation = saturation
+        self.temperature = temperature
+        self.grain = grain
+        self.vignette = vignette
     }
     
 }
