@@ -5,7 +5,7 @@
 //  Created by 조호근 on 2/27/25.
 //
 
-import CoreImage
+import CoreImage.CIFilterBuiltins
 
 public class FilterProcessor {
     
@@ -18,47 +18,50 @@ public class FilterProcessor {
         
         var result = ciImage
         
-        if let adjusted = applyAdjustment(
-            filter.adjustments.contrast,
-            to: result,
-            filterName: "CIColorControls",
-            parameter: kCIInputContrastKey
-        ) {
+        let colorControls = CIFilter.colorControls()
+        colorControls.inputImage = result
+        colorControls.contrast = normalizeContrast(filter.adjustments.contrast)
+        colorControls.saturation = normalizeSaturation(filter.adjustments.saturation)
+        
+        if let adjusted = colorControls.outputImage {
             result = adjusted
         }
         
-        if let adjusted = applyAdjustment(
-            filter.adjustments.saturation,
-            to: result,
-            filterName: "CIColorControls",
-            parameter: kCIInputSaturationKey
-        ) {
+        let temperatureAndTint = CIFilter.temperatureAndTint()
+        colorControls.inputImage = result
+        let normalizedTemp = normalizeTemperature(filter.adjustments.temperature)
+        temperatureAndTint.targetNeutral = CIVector(x: normalizedTemp)
+        
+        if let adjusted = temperatureAndTint.outputImage {
             result = adjusted
         }
         
-        if let adjusted = applyAdjustment(
-            filter.adjustments.temperature,
-            to: result,
-            filterName: "CITemperatureAndTint",
-            parameter: "inputNeutral"
-        ) {
+        let vignette = CIFilter.vignette()
+        vignette.inputImage = result
+        vignette.intensity = normalizeVignette(filter.adjustments.vignette)
+        
+        if let adjusted = vignette.outputImage {
             result = adjusted
         }
         
-        if let adjusted = applyAdjustment(
-            filter.adjustments.vignette,
-            to: result,
-            filterName: "CIVignette",
-            parameter: kCIInputIntensityKey
-        ) {
-            result = adjusted
-        }
-        
-        if let adjusted = applyGrain(
-            filter.adjustments.grain,
-            to: result
-        ) {
-            result = adjusted
+        if filter.adjustments.grain > 0 {
+            let noiseGenerator = CIFilter.randomGenerator()
+            let noise = noiseGenerator.outputImage?.cropped(to: result.extent)
+            
+            let noiseControls = CIFilter.colorControls()
+            noiseControls.inputImage = noise
+            noiseControls.contrast = normalizeGrain(filter.adjustments.grain)
+            noiseControls.saturation = 0
+            
+            if let processedNoise = noiseControls.outputImage {
+                let blend = CIFilter.multiplyCompositing()
+                blend.inputImage = processedNoise
+                blend.backgroundImage = result
+                
+                if let adjusted = blend.outputImage {
+                    result = adjusted
+                }
+            }
         }
         
         return result
@@ -72,47 +75,28 @@ public class FilterProcessor {
 
 extension FilterProcessor {
     
-    private static func applyAdjustment(
-        _ adjustment: Adjustment,
-        to image: CIImage,
-        filterName: String,
-        parameter: String
-    ) -> CIImage? {
-        guard adjustment.range.contains(adjustment.value) else {
-            print("⚠️ \(filterName) - \(parameter) value is out of range: \(adjustment.value)")
-            return nil
-        }
-        
-        guard let filter = CIFilter(name: filterName) else { return nil }
-        filter.setValue(image, forKey: kCIInputImageKey)
-        filter.setValue(adjustment.value / 100, forKey: parameter)
-        
-        return filter.outputImage
-    }
-    
-    private static func applyGrain(
-        _ adjustment: Adjustment,
-        to image: CIImage
-    ) -> CIImage? {
-        guard adjustment.range.contains(adjustment.value) else {
-            print("⚠️ Grain value is out of range: \(adjustment.value)")
-            return nil
-        }
-        
-        guard let noiseFilter = CIFilter(name: "CIRandomGenerator"),
-              let blendFilter = CIFilter(name: "CIMultiplyCompositing") else { return nil }
-        
-        let noiseImage = noiseFilter.outputImage?
-            .cropped(to: image.extent)
-            .applyingFilter("CIColorControls", parameters: [
-                kCIInputContrastKey: adjustment.value / 50.0,
-                kCIInputSaturationKey: 0
-            ])
-        
-        blendFilter.setValue(noiseImage, forKey: kCIInputImageKey)
-        blendFilter.setValue(image, forKey: kCIInputBackgroundImageKey)
-        
-        return blendFilter.outputImage
-    }
-    
+    // MARK: - Value Normalizers
+       private static func normalizeContrast(_ value: Float) -> Float {
+           let normalized = (value + 100) / 200
+           return Float(normalized * 3.75 + 0.25)
+       }
+       
+       private static func normalizeSaturation(_ value: Float) -> Float {
+           let normalized = (value + 100) / 200
+           return Float(normalized * 2.0)
+       }
+       
+       private static func normalizeTemperature(_ value: Float) -> CGFloat {
+           let normalized = (value + 50) / 100
+           return CGFloat(normalized * 5000 + 4000)
+       }
+       
+       private static func normalizeVignette(_ value: Float) -> Float {
+           let normalized = value / 100
+           return Float(normalized * 2.0 - 1.0)
+       }
+       
+       private static func normalizeGrain(_ value: Float) -> Float {
+           return Float(value / 100)
+       }
 }
